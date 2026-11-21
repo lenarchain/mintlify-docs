@@ -1,0 +1,39 @@
+---
+title: "Introduction"
+description: "Developer documentation for Lenarchain."
+---
+
+Lenarchain is a blockchain built with a focus on scalability, simplicity, and practical use.
+
+<Warning>
+  The project is in an early stage and currently runs as a mainnet alpha: a lightweight chain that supports transfers only. This documentation covers the basics. More details will be released before the full launch, which is scheduled after the early supporter phase. They include the instruction set model, the full RPC API, and the consensus model.
+</Warning>
+
+## Explore the docs
+
+<CardGroup cols={2}>
+  <Card title="Concepts" icon="cube" href="/concepts/addresses">
+    Addresses and transactions.
+  </Card>
+  <Card title="RPC API" icon="plug" href="/rpc/overview">
+    Send transactions and read chain data.
+  </Card>
+  <Card title="Wallet" icon="wallet" href="/wallet">
+    A ready-to-use wallet, or build your own.
+  </Card>
+</CardGroup>
+
+## Source code
+
+Our open-source code, including the wallet, is available on [GitHub](https://github.com/lenarchain).
+
+## Conventions
+
+- All RPC examples use Python with the `requests` library.
+- Signing examples also use `pycryptodome` and `pynacl`. See [Transactions](/concepts/transactions).
+- The examples use a node running at `https://alpha.lenarchain.xyz`.
+- Large integers are returned as decimal strings. See the [RPC overview](/rpc/overview#number-format).
+
+## Join the community
+
+Become an early supporter at [early.lenarchain.xyz](https://early.lenarchain.xyz), and join the conversation on [Discord](https://discord.lenarchain.xyz) and [X (Twitter)](https://x.com/lenarchain).

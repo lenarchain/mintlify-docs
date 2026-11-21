@@ -1,0 +1,56 @@
+---
+title: "RPC overview"
+description: "Base URL, conventions, and error format for the RPC API."
+---
+
+## Network
+
+Lenarchain currently runs as a mainnet alpha: a lightweight chain that supports transfers only. The RPC API may change as more features are added.
+
+## Base URL
+
+The public node is available at `https://alpha.lenarchain.xyz`.
+
+```python
+import requests
+
+rpc_url = "https://alpha.lenarchain.xyz"
+```
+
+## Endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| POST | `/send_transaction` | [Send a signed transaction](/rpc/send-transaction) |
+| GET | `/account/:address` | [Get account info](/rpc/account) |
+| GET | `/traffic` | [Get tip recommendations](/rpc/traffic) |
+| GET | `/transaction/:tx_hash` | [Get transaction details](/rpc/transaction) |
+| GET | `/block/:blocknumber` | [Get block details](/rpc/block) |
+| GET | `/block_number` | [Get the latest block number](/rpc/block-number) |
+| GET | `/power_price` | [Get the current power price](/rpc/power-price) |
+| GET | `/chainid` | [Get the chain ID](/rpc/chain-id) |
+| GET | `/token_supply` | [Get token supply details](/rpc/token-supply) |
+
+## Number format
+
+Integers from `uint64` up to `uint256` are returned as decimal strings, for example `"balance": "11910600000100600000"` or `"nonce": "19"`. Smaller integers (`uint8`, `uint16`, `uint32`), such as `status`, `version`, `chainid`, and `position`, are returned as JSON numbers.
+
+In Python, convert a string number with `int()`:
+
+```python
+balance = int(account["balance"])
+```
+
+## Errors
+
+When a request fails, the response contains a single `error` field with a message.
+
+```json
+{
+  "error": "The error explanation is here"
+}
+```
+
+<Note>
+  HTTP status codes will be documented in a future update.
+</Note>

@@ -1,0 +1,161 @@
+---
+title: "Transactions"
+description: "How to build, sign, and hash a transaction."
+---
+
+A transaction is sent to the network as a single byte string: the unsigned body followed by its signature.
+
+<Warning>
+  Lenarchain currently runs as a mainnet alpha, so transactions move real funds. Keep your private key secret and never publish it.
+</Warning>
+
+## Unsigned body
+
+The body is the plain concatenation of the fields below, in this exact order. All integers are **big-endian** and have a fixed width.
+
+| Field | Type | Size | Description |
+| --- | --- | --- | --- |
+| `version` | uint8 | 1 byte | Transaction format version |
+| `chainid` | uint32 | 4 bytes | Chain identifier. See [Get chain ID](/rpc/chain-id) |
+| `action` | uint8 | 1 byte | The action to perform (`0` is a transfer) |
+| `sender` | bytes32 | 32 bytes | Ed25519 public key of the sender |
+| `to` | bytes20 | 20 bytes | Recipient, from the 40 hex characters of the address |
+| `nonce` | uint64 | 8 bytes | Sender nonce |
+| `amount` | uint256 | 32 bytes | Amount to send, in base units |
+| `power` | uint64 | 8 bytes | Power for the transaction. See [Power](#power) |
+| `power_limit` | uint64 | 8 bytes | Maximum power the sender allows. See [Power](#power) |
+| `price_per_power` | uint256 | 32 bytes | Price paid per unit of power. See [Get power price](/rpc/power-price) |
+| `packet` | bytes | variable | Packet data. See [Packet](#packet) |
+| `tip` | uint256 | 32 bytes | Tip for the node that executes the transaction. See [Fees](#fees) |
+
+A transfer is therefore 179 bytes unsigned, plus a 64-byte signature.
+
+## Packet
+
+The current chain is lightweight and supports transfers only, so a transfer carries no packet data. Its `packet` is the single default byte `b"\x00"`. In future versions with more features, this field will hold the transaction data of the action, encoded as bytes.
+
+## Power
+
+Power measures the work needed to execute a transaction. It works like gas on Ethereum.
+
+- `power` is the power for the transaction. For a transfer it is a constant: `1200`.
+- `power_limit` is the maximum power the sender allows, a tolerance so the transaction does not fail. When power estimation is available, set it to the estimate plus about 10%. Because a transfer always costs `1200`, both fields are `1200` today.
+- `power_used` is the power actually used when a node executes the transaction. It is returned by the [Get transaction](/rpc/transaction) endpoint. If it exceeds `power_limit`, the transaction fails.
+
+Lenarchain currently runs as a lightweight, single-node chain, so `power`, `power_limit`, and `power_used` have the same value. Other networks can configure them differently.
+
+## Hashing and signing libraries
+
+The examples use two Python libraries:
+
+```bash
+pip install pycryptodome pynacl
+```
+
+- **Keccak-256** is the original Keccak used by Ethereum, not NIST SHA3-256.
+- **Ed25519** private keys are 32-byte seeds. Signatures are 64 bytes.
+
+```python
+from Crypto.Hash import keccak
+from nacl.signing import SigningKey
+
+def keccak256(data: bytes) -> bytes:
+    return keccak.new(digest_bits=256, data=data).digest()
+```
+
+To generate a new private key:
+
+```python
+import os
+
+private_key = os.urandom(32).hex()
+```
+
+## Signing
+
+The signature is an Ed25519 signature over the Keccak-256 hash of a domain prefix followed by the unsigned body. The domain prefix is one byte that separates the kinds of signed message:
+
+| Prefix | Used for |
+| --- | --- |
+| `0` | Plain message |
+| `1` | Transaction |
+| `2` | Block |
+
+Sign the 32 raw hash bytes, not the hex string.
+
+```python
+import requests
+
+rpc_url = "https://alpha.lenarchain.xyz"
+
+def rpc_get(path):
+    return requests.get(rpc_url + path, timeout=10).json()
+
+DOMAIN_TX = b"\x01"  # domain prefix for transactions
+
+# Use your own 32-byte private key in hex. Never publish or commit it.
+private_key = "<YOUR_PRIVATE_KEY_HEX>"
+signing_key = SigningKey(bytes.fromhex(private_key))
+public_key = signing_key.verify_key.encode()  # 32 bytes
+address = "rx" + keccak256(public_key)[-20:].hex()
+
+send_to = "rx000000000000000000000000000000000000dead"
+amount = 1 * 10**18  # 1 token, in base units
+nonce = int(rpc_get("/account/" + address)["pending_nonce"])
+chainid = rpc_get("/chainid")["chainid"]
+transfer_power = 1200  # constant for a transfer
+power_price = int(rpc_get("/power_price")["power_price"])
+tip = int(rpc_get("/traffic")["medium"])  # use a higher value for faster inclusion
+
+unsigned_body = b"".join([
+    b"\x01",                                    # version
+    chainid.to_bytes(4, "big"),                 # chainid (uint32)
+    b"\x00",                                    # action (transfer)
+    public_key,                                 # sender (32 bytes)
+    bytes.fromhex(send_to.removeprefix("rx")),  # to (20 bytes)
+    nonce.to_bytes(8, "big"),                   # nonce (uint64)
+    amount.to_bytes(32, "big"),                 # amount (uint256)
+    transfer_power.to_bytes(8, "big"),          # power (uint64)
+    transfer_power.to_bytes(8, "big"),          # power_limit (uint64)
+    power_price.to_bytes(32, "big"),            # price_per_power (uint256)
+    b"\x00",                                    # packet (none)
+    tip.to_bytes(32, "big"),                    # tip (uint256)
+])
+
+msg_hash = keccak256(DOMAIN_TX + unsigned_body)
+signature = signing_key.sign(msg_hash).signature  # 64 bytes
+tx_body = unsigned_body + signature
+
+tx_hash = "rx" + keccak256(tx_body).hex()
+
+r = requests.post(
+    rpc_url + "/send_transaction",
+    data=tx_body,
+    headers={"Content-Type": "application/octet-stream"},
+    timeout=10,
+).json()
+print("TxHash:", r["hash"])
+print("Equal:", tx_hash == r["hash"])
+```
+
+`tx_body` is what you send to the node through the [Send transaction](/rpc/send-transaction) endpoint.
+
+## Transaction hash
+
+The RPC returns the hash when you send a transaction. You can also compute it yourself. The hash is the Keccak-256 of the signed body (`unsigned_body` + `signature`), with no domain prefix:
+
+```python
+tx_hash = "rx" + keccak256(tx_body).hex()
+```
+
+## Fees
+
+The fee is calculated after the transaction is executed:
+
+```text
+fee = power_used x price_per_power
+```
+
+`price_per_power` is the value the sender signed in the transaction. For example, `1200 x 100000000000 = 120000000000000`. The fee is only known once the transaction has been executed. What the network does with the fee is configured per network.
+
+The tip signed by the sender goes entirely to the node that executes the transaction. Use the [Traffic](/rpc/traffic) endpoint for tip recommendations. You can use a higher tip if you want. Use the [Power price](/rpc/power-price) endpoint for the current price per power.

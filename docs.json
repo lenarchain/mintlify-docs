@@ -1,0 +1,78 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "lenarchain",
+  "description": "Developer documentation for Lenarchain.",
+  "colors": {
+    "primary": "#312D81",
+    "light": "#908BEE",
+    "dark": "#312D81"
+  },
+  "appearance": {
+    "default": "light"
+  },
+  "logo": {
+    "light": "/logo-light.svg",
+    "dark": "/logo-dark.svg"
+  },
+  "favicon": "/favicon.png",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting started",
+        "pages": [
+          "index"
+        ]
+      },
+      {
+        "group": "Concepts",
+        "pages": [
+          "concepts/addresses",
+          "concepts/transactions"
+        ]
+      },
+      {
+        "group": "RPC API",
+        "pages": [
+          "rpc/overview",
+          "rpc/chain-id",
+          "rpc/account",
+          "rpc/power-price",
+          "rpc/traffic",
+          "rpc/send-transaction",
+          "rpc/transaction",
+          "rpc/block",
+          "rpc/block-number",
+          "rpc/token-supply"
+        ]
+      },
+      {
+        "group": "Tools",
+        "pages": [
+          "wallet"
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/lenarchain"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Become an early supporter",
+      "href": "https://early.lenarchain.xyz"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/lenarchain",
+      "github": "https://github.com/lenarchain",
+      "discord": "https://discord.lenarchain.xyz",
+      "telegram": "https://t.me/lenarchain"
+    }
+  }
+}

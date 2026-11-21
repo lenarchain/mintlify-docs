@@ -1,0 +1,22 @@
+---
+title: "Get block number"
+description: "Get the latest block number."
+---
+
+`GET /block_number`
+
+```python
+r = requests.get(rpc_url + "/block_number")
+print(r.json())
+```
+
+## Response
+
+```json
+{
+  "block_number": "6343"
+}
+```
+
+The value is the number of the latest block, whatever its status. To check whether that block is processed, confirmed, or finalized, call [Get block](/rpc/block) with this number and read its `status` (`0`, `1`, or `2`).
+

@@ -1,0 +1,35 @@
+---
+title: "Get tip recommendation"
+description: "Check network traffic and get recommended tip values."
+---
+
+`GET /traffic`
+
+This endpoint reflects how busy the network is. It returns recommended tip values, so your transaction can be accepted by the next block.
+
+```python
+r = requests.get(rpc_url + "/traffic")
+print(r.json())
+```
+
+## Response
+
+```json
+{
+  "min": "40000000000000",
+  "medium": "50000000000000",
+  "fast": "80000000000000"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `min` | string | Minimum recommended tip (uint256) |
+| `medium` | string | Medium recommended tip (uint256) |
+| `fast` | string | Fast recommended tip (uint256) |
+
+Use one of these values for the `tip` field of your transaction. You can set a higher tip if you want. The tip goes entirely to the node that executes the transaction. See [Fees](/concepts/transactions#fees).
+
+<Note>
+  When the network is quiet, the three values can be the same.
+</Note>

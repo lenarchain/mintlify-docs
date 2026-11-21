@@ -1,0 +1,22 @@
+---
+title: "Wallet"
+description: "Use a ready-made wallet or build your own."
+---
+
+## Ready-made wallet
+
+We provide an open-source wallet as a Chrome extension. The source code and the installation instructions are in the [lenarchain/lenar-wallet](https://github.com/lenarchain/lenar-wallet) repository.
+
+## Build your own
+
+A wallet only needs to do five things. Each one is covered in these docs:
+
+1. Generate an Ed25519 key pair and derive the address. See [Addresses](/concepts/addresses).
+2. Read the balance and nonce with [Get account](/rpc/account).
+3. Fetch the chain ID, the power price, and a tip recommendation. See [Get chain ID](/rpc/chain-id), [Get power price](/rpc/power-price), and [Get tip recommendation](/rpc/traffic).
+4. Build and sign the transaction. See [Transactions](/concepts/transactions).
+5. Send it with [Send transaction](/rpc/send-transaction), then track it with [Get transaction](/rpc/transaction).
+
+<Warning>
+  Your private key controls your funds. Back it up offline, never share it, and never commit it to a repository.
+</Warning>

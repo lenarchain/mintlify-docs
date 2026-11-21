@@ -1,0 +1,90 @@
+---
+title: "Get transaction"
+description: "Get the details of a transaction by its hash."
+---
+
+`GET /transaction/:tx_hash`
+
+The hash is `rx` followed by 64 hex characters.
+
+```python
+r = requests.get(rpc_url + "/transaction/rx0726f08285801c8bae31390693371de5170e105e680ae552306f58a1e6a35a0f")
+tx = r.json()
+
+STATUS = ["pending", "success", "failed"]
+status = STATUS[tx["status"]] if tx.get("status") is not None else "not found"
+print(status)
+```
+
+## Status values
+
+| Value | Meaning |
+| --- | --- |
+| `0` | pending |
+| `1` | success |
+| `2` | failed |
+
+## Response
+
+```json
+{
+  "hash": "rx0726f08285801c8bae31390693371de5170e105e680ae552306f58a1e6a35a0f",
+  "version": 1,
+  "status": 1,
+  "blocknumber": "6203",
+  "position": 0,
+  "timestamp": "1791896859",
+  "power_used": "1200",
+  "fee": "120000000000000",
+  "event": "00",
+  "chainid": 1,
+  "action": 0,
+  "sender": {
+    "address": "rx86955906db9d5238ad51f0a96551f05b414df9e8",
+    "public_key": "rxfd6a70b3723e93648f8f4c36c44a0cd11a36a7af9fdb214c3883681ab8e245ee"
+  },
+  "to": "rx9d0172598f220893e861f3a95a7bc446a749afe6",
+  "nonce": "19",
+  "amount": "1000000000000000000",
+  "power": "1200",
+  "power_limit": "1200",
+  "price_per_power": "100000000000",
+  "packet": "00",
+  "tip": "40000000000000",
+  "signature": "rxf12377c85978e13f677d61522adb7f6c31b16311b7e48e31fe257a4e0570df3bcce36603c88c5043e7954750d5afd55695444bdd25660a724d40020231e8b80d"
+}
+```
+
+## Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `hash` | string | Transaction hash |
+| `version` | uint8 | Transaction format version |
+| `status` | uint8 | See status values above |
+| `blocknumber` | string | Block that contains the transaction (uint64) |
+| `position` | uint16 | Position of the transaction inside the block |
+| `timestamp` | string | Block timestamp in Unix seconds (uint64) |
+| `power_used` | string | Power actually used to execute the transaction (uint64) |
+| `fee` | string | Fee charged: `power_used` x `price_per_power` (uint256). Only available after the transaction is executed |
+| `event` | string | Hex-encoded event bytes. A transfer has no event, so the value is `00`. Other actions may return other bytes |
+| `chainid` | uint32 | Chain identifier |
+| `action` | uint8 | The action performed |
+| `sender` | object | Sender `address` and `public_key` |
+| `to` | string | Recipient address |
+| `nonce` | string | Sender nonce (uint64) |
+| `amount` | string | Amount sent (uint256) |
+| `power` | string | Power for the transaction (uint64) |
+| `power_limit` | string | Maximum power allowed by the sender (uint64) |
+| `price_per_power` | string | Price per unit of power (uint256) |
+| `packet` | string | Hex-encoded packet bytes. A transfer has no packet data, so the value is `00`. Other actions may return other bytes |
+| `tip` | string | Tip for the node that executed the transaction (uint256) |
+| `signature` | string | Transaction signature |
+
+## Errors
+
+```json
+{
+  "error": "transaction not found"
+}
+```
